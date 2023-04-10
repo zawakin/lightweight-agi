@@ -9,6 +9,8 @@ import (
 	"github.com/sashabaranov/go-openai"
 
 	"github.com/zawakin/lightweight-agi/agi"
+	"github.com/zawakin/lightweight-agi/agi/agentfactory"
+	"github.com/zawakin/lightweight-agi/agi/model"
 	"github.com/zawakin/lightweight-agi/provider"
 	"github.com/zawakin/lightweight-agi/vectorstore"
 )
@@ -27,7 +29,7 @@ func main() {
 	openAIAPIKey := os.Getenv("OPENAI_API_KEY")
 
 	// Define Global Objective of this AGI
-	objective := agi.Objective("I want to learn how to play chess.")
+	objective := model.Objective("I want to learn how to play chess.")
 
 	// disable log prefix
 	log.SetFlags(0)
@@ -43,7 +45,7 @@ func main() {
 	vectorStore := vectorstore.NewInMemoryVectorStore()
 
 	// ==== Create AGI agent factory ====
-	agentFactory := agi.NewAgentFactory(vectorStore, completionClient, embeddingClient)
+	agentFactory := agentfactory.NewAgentFactory(vectorStore, completionClient, embeddingClient)
 
 	// ==== Run AGI agent ====
 	agiAgent := agi.NewAGIAgent(

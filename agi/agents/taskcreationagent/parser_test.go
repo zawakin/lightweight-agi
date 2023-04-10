@@ -1,17 +1,18 @@
-package agi
+package taskcreationagent
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/zawakin/lightweight-agi/agi/model"
 )
 
 func TestParseTasksFromString(t *testing.T) {
 	tests := []struct {
 		name    string
 		s       string
-		want    Tasks
+		want    model.Tasks
 		wantErr bool
 	}{
 		{
@@ -22,9 +23,9 @@ func TestParseTasksFromString(t *testing.T) {
 		{
 			name: "single task",
 			s:    `1. task1`,
-			want: Tasks{
+			want: model.Tasks{
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task1",
 				},
 			},
@@ -34,17 +35,17 @@ func TestParseTasksFromString(t *testing.T) {
 			s: `1. task1
 2. task2
 3. task3`,
-			want: Tasks{
+			want: model.Tasks{
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task1",
 				},
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task2",
 				},
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task3",
 				},
 			},
@@ -56,17 +57,17 @@ func TestParseTasksFromString(t *testing.T) {
 2. task2
 
 3. task3`,
-			want: Tasks{
+			want: model.Tasks{
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task1",
 				},
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task2",
 				},
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task3",
 				},
 			},
@@ -78,17 +79,17 @@ func TestParseTasksFromString(t *testing.T) {
 2. task2
 
 3. task3`,
-			want: Tasks{
+			want: model.Tasks{
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task1",
 				},
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task2",
 				},
 				{
-					ID:   MakeTaskID(),
+					ID:   model.MakeTaskID(),
 					Name: "task3",
 				},
 			},
@@ -101,7 +102,7 @@ func TestParseTasksFromString(t *testing.T) {
 				t.Errorf("ParseTasksFromString() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(Task{}, "ID")) {
+			if !cmp.Equal(got, tt.want, cmpopts.IgnoreFields(model.Task{}, "ID")) {
 				t.Errorf("ParseTasksFromString() = %v, want %v; diff %s", got, tt.want, cmp.Diff(tt.want, got))
 			}
 		})

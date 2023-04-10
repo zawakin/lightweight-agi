@@ -1,4 +1,4 @@
-package agi
+package model
 
 import (
 	"fmt"

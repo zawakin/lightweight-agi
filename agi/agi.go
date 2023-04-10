@@ -4,6 +4,14 @@ import (
 	"context"
 	"log"
 	"time"
+
+	"github.com/zawakin/lightweight-agi/agi/agents/evaluationagent"
+	"github.com/zawakin/lightweight-agi/agi/agents/executionagent"
+	"github.com/zawakin/lightweight-agi/agi/agents/objectiverefinementagent"
+	"github.com/zawakin/lightweight-agi/agi/agents/priorizationagent"
+	"github.com/zawakin/lightweight-agi/agi/agents/taskcontextagent"
+	"github.com/zawakin/lightweight-agi/agi/agents/taskcreationagent"
+	"github.com/zawakin/lightweight-agi/agi/model"
 )
 
 const (
@@ -11,21 +19,21 @@ const (
 )
 
 type AGIAgent struct {
-	objectiveRefinementAgent ObjectiveRefinementAgent
-	executionAgent           ExecutionAgent
-	evaluationAgent          EvaluationAgent
-	taskCreationAgent        TaskCreationAgent
-	priorizationAgent        PriorizationAgent
-	taskContextAgent         TaskContextAgent
+	objectiveRefinementAgent objectiverefinementagent.ObjectiveRefinementAgent
+	executionAgent           executionagent.ExecutionAgent
+	evaluationAgent          evaluationagent.EvaluationAgent
+	taskCreationAgent        taskcreationagent.TaskCreationAgent
+	priorizationAgent        priorizationagent.PriorizationAgent
+	taskContextAgent         taskcontextagent.TaskContextAgent
 }
 
 func NewAGIAgent(
-	objectiveRefinementAgent ObjectiveRefinementAgent,
-	executionAgent ExecutionAgent,
-	evaluationAgent EvaluationAgent,
-	taskCreationAgent TaskCreationAgent,
-	priorizationAgent PriorizationAgent,
-	taskContextAgent TaskContextAgent,
+	objectiveRefinementAgent objectiverefinementagent.ObjectiveRefinementAgent,
+	executionAgent executionagent.ExecutionAgent,
+	evaluationAgent evaluationagent.EvaluationAgent,
+	taskCreationAgent taskcreationagent.TaskCreationAgent,
+	priorizationAgent priorizationagent.PriorizationAgent,
+	taskContextAgent taskcontextagent.TaskContextAgent,
 ) *AGIAgent {
 	return &AGIAgent{
 		objectiveRefinementAgent: objectiveRefinementAgent,
@@ -37,7 +45,7 @@ func NewAGIAgent(
 	}
 }
 
-func (a *AGIAgent) RunAGIByObjective(ctx context.Context, objective Objective) error {
+func (a *AGIAgent) RunAGIByObjective(ctx context.Context, objective model.Objective) error {
 	LogStep("Objective", objective)
 
 	objective, err := a.objectiveRefinementAgent.RefineObjective(ctx, objective)
@@ -65,7 +73,7 @@ func (a *AGIAgent) RunAGIByObjective(ctx context.Context, objective Objective) e
 	return nil
 }
 
-func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone Milestone) error {
+func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone model.Milestone) error {
 	objective := milestone.Objective
 
 	LogStep("Milestone Objective", objective)
@@ -116,7 +124,7 @@ func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone Milestone) e
 
 		LogStep("Task Evaluation", evaluation)
 
-		err = a.taskContextAgent.StoreContext(ctx, TaskContext{
+		err = a.taskContextAgent.StoreContext(ctx, model.TaskContext{
 			Task: task,
 			Text: result.ResultText,
 		})

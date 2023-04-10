@@ -1,14 +1,16 @@
-package agi
+package taskcreationagent
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/zawakin/lightweight-agi/agi/model"
 )
 
-func ParseMilestones(s string) ([]Milestone, error) {
+func ParseMilestones(s string) ([]model.Milestone, error) {
 	splitMilestones := strings.Split(s, "\n")
-	var result []Milestone
+	var result []model.Milestone
 	for _, milestone := range splitMilestones {
 		if milestone == "" {
 			continue
@@ -29,8 +31,8 @@ func ParseMilestones(s string) ([]Milestone, error) {
 			return nil, fmt.Errorf("invalid milestone format: %s", milestone)
 		}
 
-		result = append(result, Milestone{
-			Objective: Objective(strings.TrimSpace(indexName[1])),
+		result = append(result, model.Milestone{
+			Objective: model.Objective(strings.TrimSpace(indexName[1])),
 			Name:      strings.TrimSpace(indexName[1]),
 		})
 	}
@@ -44,9 +46,9 @@ func ParseMilestones(s string) ([]Milestone, error) {
 // 3. {task3}
 // ...
 // The index of the task is ignored.
-func ParseTasksFromString(s string) (Tasks, error) {
+func ParseTasksFromString(s string) (model.Tasks, error) {
 	splitTasks := strings.Split(s, "\n")
-	var result Tasks
+	var result model.Tasks
 	for _, task := range splitTasks {
 		if task == "" {
 			continue
@@ -64,55 +66,14 @@ func ParseTasksFromString(s string) (Tasks, error) {
 		}
 		_, err := strconv.Atoi(strings.TrimSpace(indexName[0]))
 		if err != nil {
-			return Tasks{}, fmt.Errorf("invalid task format: %s", task)
+			return model.Tasks{}, fmt.Errorf("invalid task format: %s", task)
 		}
 
-		result = append(result, Task{
-			ID:   MakeTaskID(),
+		result = append(result, model.Task{
+			ID:   model.MakeTaskID(),
 			Name: strings.TrimSpace(indexName[1]),
 		})
 	}
 
 	return result, nil
-}
-
-func ParseTaskEvaluationFromString(s string) (TaskEvaluation, error) {
-	lines := strings.Split(s, "\n")
-
-	if len(lines) < 2 {
-		return TaskEvaluation{}, fmt.Errorf("invalid task evaluation format: %s", s)
-	}
-
-	var score int
-	var reason string
-	var err error
-
-	hasScore := false
-
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		if strings.HasPrefix(line, "Score:") {
-			score, err = strconv.Atoi(strings.TrimSpace(strings.TrimPrefix(line, "Score:")))
-			if err != nil {
-				return TaskEvaluation{}, fmt.Errorf("invalid task evaluation format: %s", s)
-			}
-			hasScore = true
-			continue
-		}
-		if strings.HasPrefix(line, "Reason:") {
-			reason = strings.TrimSpace(strings.TrimPrefix(line, "Reason:"))
-			continue
-		}
-	}
-
-	if !hasScore {
-		return TaskEvaluation{}, fmt.Errorf("invalid task evaluation format: %s", s)
-	}
-
-	return TaskEvaluation{
-		Score:  score,
-		Reason: reason,
-	}, nil
 }

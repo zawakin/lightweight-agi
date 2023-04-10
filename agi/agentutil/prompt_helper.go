@@ -1,0 +1,5 @@
+package agentutil
+
+const (
+	TripleQuote = "```"
+)

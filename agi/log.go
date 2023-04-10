@@ -4,15 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+
+	"github.com/zawakin/lightweight-agi/agi/model"
 )
 
-func (a *AGIAgent) dumpAllSavedContext(ctx context.Context, objective Objective, tasks Tasks) error {
+func (a *AGIAgent) dumpAllSavedContext(ctx context.Context, objective model.Objective, tasks model.Tasks) error {
 	dumped, err := a.taskContextAgent.DebugDumpTaskContext(ctx)
 	if err != nil {
 		return err
 	}
 
-	collection := NewTaskContextCollection(objective, dumped, tasks)
+	collection := model.NewTaskContextCollection(objective, dumped, tasks)
 
 	bs, err := json.Marshal(collection)
 	if err != nil {
@@ -24,6 +26,7 @@ func (a *AGIAgent) dumpAllSavedContext(ctx context.Context, objective Objective,
 	return nil
 }
 
+// LogStep logs a step in the AGI process.
 func LogStep(step string, vs ...interface{}) {
 	log.Println()
 	log.Println("======= " + step + " ======")
