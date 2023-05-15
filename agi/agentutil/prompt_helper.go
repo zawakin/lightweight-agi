@@ -1,5 +1,0 @@
-package agentutil
-
-const (
-	TripleQuote = "```"
-)
