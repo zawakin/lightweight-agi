@@ -19,6 +19,8 @@ import (
 var (
 	// defaultOpenAICompletionModel = openai.GPT3Dot5Turbo
 	defaultOpenAICompletionModel = openai.GPT4
+
+	verbose = true
 )
 
 func init() {
@@ -53,46 +55,15 @@ func main() {
 	// ==== Create data store provider ====
 	dataStore := datastore.NewDataStore(inmemory.NewInMemoryDataStore(), embeddingClient)
 
+	// === Create Prompt Runner ====
+	runner := prompt.NewPromptRunner(completionClient, verbose)
+
 	// ==== Run AGI agent ====
-	agiAgent := agi.NewAGIAgent(
-		completionClient,
-		embeddingClient,
-		dataStore,
-	)
+	agiAgent := agi.NewAGIAgent(runner, dataStore)
 
 	// Define Global Objective of this AGI
-	objective := prompts.Objective("I want to learn how to play chess.")
-
+	objective := prompts.Objective("Define the feature of good GPT prompt.")
 	if err := agiAgent.RunAGIByObjective(ctx, objective); err != nil {
 		log.Fatal(err)
-	}
-
-	// 	p := prompt.NewSimplePrompt(
-	// 		"Fix JSON grammar",
-	// 		`Fix JSON grammar.
-	// Don't output any code block like markdown.
-	// Just output raw JSON.Format tightly removing whitespaces between keys and values.`,
-	// 		"<original JSON>",
-	// 		"<fixed JSON>",
-	// 	)
-
-	p := prompts.EvaluationTasksPrompt
-	// input := prompts.EvaluationTaskInput{
-	// 	Objective: prompts.Objective("I want to learn how to play chess."),
-	// 	Task:      prompts.Task{},
-	// }
-
-	runner := prompt.NewPromptRunner(completionClient)
-	var resp prompts.RefinePromptOutput
-
-	for i := 0; i < 5; i++ {
-		err := runner.Run(ctx, prompts.RefinePromptPrompt, prompts.RefinePromptInput{
-			Original: p,
-		}, &resp)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		p = resp.RefinedPrompt
 	}
 }

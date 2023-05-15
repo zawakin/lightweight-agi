@@ -27,12 +27,45 @@ type Prompt struct {
 	Examples     Examples `json:"examples"`
 }
 
-func NewPrompter(name string, description string, template *Example, examples []Example) *Prompt {
-	return NewPrompt(name, description, template, examples)
+func NewPrompt(name string, description string, template *Example, examples []Example) *Prompt {
+	return &Prompt{
+		Name:        name,
+		Description: description,
+		Template:    template,
+		Examples:    examples,
+	}
 }
 
 func NewSimplePrompt(name string, description string, input string, output string) *Prompt {
 	return NewPrompt(name, description, NewExample(input, output), nil)
+}
+
+func (c *Prompt) Format(input Input) (string, error) {
+	formattedInput, err := toJson(input)
+	if err != nil {
+		return "", err
+	}
+	formattedTemplate, err := c.Template.Format()
+	if err != nil {
+		return "", err
+	}
+	formattedExamples, err := c.Examples.Format()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf(`You are an AI named "%s".
+%s
+
+Output a JSON-formatted string without outputting any other strings.
+
+Template:
+%s
+
+%s
+
+Input: %s
+Output:`, c.Name, c.Description, formattedTemplate, formattedExamples, formattedInput), nil
 }
 
 type Example struct {
@@ -79,43 +112,6 @@ func (p Examples) Format() (string, error) {
 		s += ds + "\n"
 	}
 	return s, nil
-}
-
-func NewPrompt(name string, description string, template *Example, examples []Example) *Prompt {
-	return &Prompt{
-		Name:        name,
-		Description: description,
-		Template:    template,
-		Examples:    examples,
-	}
-}
-
-func (c *Prompt) Format(input Input) (string, error) {
-	formattedInput, err := toJson(input)
-	if err != nil {
-		return "", err
-	}
-	formattedTemplate, err := c.Template.Format()
-	if err != nil {
-		return "", err
-	}
-	formattedExamples, err := c.Examples.Format()
-	if err != nil {
-		return "", err
-	}
-
-	return fmt.Sprintf(`You are an AI named "%s".
-%s
-
-Output a JSON-formatted string without outputting any other strings.
-
-Template:
-%s
-
-%s
-
-Input: %s
-Output:`, c.Name, c.Description, formattedTemplate, formattedExamples, formattedInput), nil
 }
 
 func toJson(v any) (string, error) {

@@ -8,7 +8,6 @@ import (
 
 	"github.com/zawakin/lightweight-agi/datastore"
 	"github.com/zawakin/lightweight-agi/examples/prompts"
-	"github.com/zawakin/lightweight-agi/llmclient"
 	"github.com/zawakin/lightweight-agi/model"
 	"github.com/zawakin/lightweight-agi/prompt"
 )
@@ -22,31 +21,24 @@ var (
 )
 
 type AGIAgent struct {
-	completionClient llmclient.CompletionClient
-	embeddingClient  llmclient.EmbeddingClient
+	runner *prompt.PromptRunner
 
 	dataStore *datastore.DataStore
 }
 
 func NewAGIAgent(
-	completionClient llmclient.CompletionClient,
-	embeddingClient llmclient.EmbeddingClient,
-
+	runner *prompt.PromptRunner,
 	dataStore *datastore.DataStore,
 ) *AGIAgent {
 	return &AGIAgent{
-		completionClient: completionClient,
-		embeddingClient:  embeddingClient,
-
+		runner:    runner,
 		dataStore: dataStore,
 	}
 }
 
 func (a *AGIAgent) RunAGIByObjective(ctx context.Context, objective prompts.Objective) error {
-	runner := prompt.NewPromptRunner(a.completionClient)
-
 	var objectiveRefinementOutput prompts.ObjectiveRefinementOutput
-	err := runner.Run(ctx, prompts.ObjectRefinementPrompt, &prompts.ObjectiveRefinementInput{
+	err := a.runner.Run(ctx, prompts.ObjectRefinementPrompt, &prompts.ObjectiveRefinementInput{
 		Objective: objective,
 	}, &objectiveRefinementOutput)
 	if err != nil {
@@ -54,7 +46,7 @@ func (a *AGIAgent) RunAGIByObjective(ctx context.Context, objective prompts.Obje
 	}
 
 	var milestoneCreationOutput prompts.MilestoneCreationOutput
-	err = runner.Run(ctx, prompts.MilestoneCreationPrompt, &prompts.MilestoneCreationInput{
+	err = a.runner.Run(ctx, prompts.MilestoneCreationPrompt, &prompts.MilestoneCreationInput{
 		Objective: objective,
 	}, &milestoneCreationOutput)
 	if err != nil {
@@ -75,12 +67,10 @@ func (a *AGIAgent) RunAGIByObjective(ctx context.Context, objective prompts.Obje
 }
 
 func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone prompts.Milestone) error {
-	runner := prompt.NewPromptRunner(a.completionClient)
-
 	objective := milestone.Objective
 
 	var objectiveRefinementOutput prompts.ObjectiveRefinementOutput
-	err := runner.Run(ctx, prompts.ObjectRefinementPrompt, &prompts.ObjectiveRefinementInput{
+	err := a.runner.Run(ctx, prompts.ObjectRefinementPrompt, &prompts.ObjectiveRefinementInput{
 		Objective: objective,
 	}, &objectiveRefinementOutput)
 	if err != nil {
@@ -90,7 +80,7 @@ func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone prompts.Mile
 	objective = objectiveRefinementOutput.RefinedObjective
 
 	var taskCreationOutput prompts.TaskCreationOutput
-	err = runner.Run(ctx, prompts.TaskCreationPrompt, &prompts.TaskCreationInput{
+	err = a.runner.Run(ctx, prompts.TaskCreationPrompt, &prompts.TaskCreationInput{
 		Objective: objective,
 	}, &taskCreationOutput)
 	if err != nil {
@@ -134,7 +124,7 @@ func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone prompts.Mile
 		}
 
 		var executionOutput prompts.ExecutionOutput
-		err = runner.Run(ctx, prompts.ExecutionPrompt, &prompts.ExecutionInput{
+		err = a.runner.Run(ctx, prompts.ExecutionPrompt, &prompts.ExecutionInput{
 			Objective:       objective,
 			CurrentTask:     task,
 			SolvedTasks:     solvedTasks,
@@ -147,7 +137,7 @@ func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone prompts.Mile
 		result := executionOutput.CurrentTaskResult
 
 		var evaluationTaskOutput prompts.EvaluationTaskOutput
-		err = runner.Run(ctx, prompts.EvaluationTasksPrompt, &prompts.EvaluationTaskInput{
+		err = a.runner.Run(ctx, prompts.EvaluationTasksPrompt, &prompts.EvaluationTaskInput{
 			Objective:  objective,
 			Task:       task,
 			TaskResult: result,
@@ -168,7 +158,7 @@ func (a *AGIAgent) RunAGIByMilestone(ctx context.Context, milestone prompts.Mile
 		}
 
 		var prioritizationOutput prompts.PriorizationOutput
-		err = runner.Run(ctx, prompts.PrioritizationPrompt, &prompts.PrioritizationInput{
+		err = a.runner.Run(ctx, prompts.PrioritizationPrompt, &prompts.PrioritizationInput{
 			Objective: objective,
 			Tasks:     tasks,
 		}, &prioritizationOutput)
